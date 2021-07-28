@@ -1,23 +1,60 @@
-import React, { Fragment, useState, useEffect } from "react";
+import React, { Fragment /* useState, useEffect */ } from "react";
 import Users from "./Users";
 import classes from "./UserFinder.module.css";
+import UsersContext from "../store/users-context";
+import ErrorBoundary from "./ErrorBoundary";
 
-const DUMMY_USERS = [
-  { id: "u1", name: "Max" },
-  { id: "u2", name: "Manuel" },
-  { id: "u3", name: "Julie" },
-];
+class UserFinder extends React.Component {
+  /* !!! We can add only one context in class components
+  in contrast of functional components where it doesn't limited */
+  static contextType = UsersContext;
 
-class UserFinderClass extends React.Component {
   constructor() {
     super();
     this.state = {
-      filteredUsers,
+      filteredUsers: [],
+      searchTerm: "",
     };
+  }
+
+  componentDidMount = () => {
+    // Send http request...
+    this.setState({ filteredUsers: this.context.users });
+  };
+
+  componentDidUpdate = (prevProps, prevState) => {
+    if (prevState.searchTerm !== this.state.searchTerm) {
+      this.setState({
+        filteredUsers: this.context.users.filter((user) =>
+          user.name.includes(this.state.searchTerm)
+        ),
+      });
+    }
+  };
+
+  searchChangeHandler = (event) => {
+    this.setState({ searchTerm: event.target.value });
+  };
+
+  render() {
+    return (
+      <Fragment>
+        <div className={classes.finder}>
+          <input
+            type="search"
+            onChange={this.searchChangeHandler}
+            value={this.state.searchTerm}
+          />
+        </div>
+        <ErrorBoundary>
+          <Users users={this.state.filteredUsers} />
+        </ErrorBoundary>
+      </Fragment>
+    );
   }
 }
 
-const UserFinder = () => {
+/* const UserFinder = () => {
   const [filteredUsers, setFilteredUsers] = useState(DUMMY_USERS);
   const [searchTerm, setSearchTerm] = useState("");
 
@@ -43,6 +80,6 @@ const UserFinder = () => {
       <Users users={filteredUsers} />
     </Fragment>
   );
-};
+}; */
 
 export default UserFinder;
